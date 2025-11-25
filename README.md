@@ -34,9 +34,10 @@ Antes de começar, certifique-se de ter instalado:
 - [npm](https://www.npmjs.com/) (vem junto com o Node.js)
 
 Verifique se estão instalados:
-```bash
 node -v
 npm -v
+
+```bash
 
 git clone https://github.com/JoadsonRocha/YouFinder.git
 cd YouFinder
