@@ -1,9 +1,22 @@
-# 🎬 YouFinder
+# 🎧 YouFinder — Reprodutor YouTube Clean em Electron
 
-Aplicativo para pesquisar vídeos no YouTube com controle de tela próprio.  
-Construído com **Electron**, **JavaScript**, **HTML** e **CSS**.
+YouFinder é um reprodutor de vídeos do YouTube minimalista, em modo “clean” (sem distrações), construído em **Electron**.  
+O foco é oferecer uma experiência simples e elegante para assistir vídeos sem comentários, recomendações e poluição visual.
 
 ---
+
+## 🚀 Funcionalidades (ideias gerais)
+
+- Interface limpa e focada apenas no vídeo
+- Janela desktop (Windows) usando Electron
+- Possibilidade de rodar em tela cheia
+- Configurações simples pensadas para uso diário
+
+
+
+---
+
+## 📁 Estrutura Básica do Projeto
 
 ## ✨ Funcionalidades
 - 🔎 Pesquisa de vídeos diretamente no YouTube
@@ -24,3 +37,15 @@ Verifique se estão instalados:
 ```bash
 node -v
 npm -v
+
+git clone https://github.com/JoadsonRocha/YouFinder.git
+cd YouFinder
+
+npm install
+
+npm install electron --save-dev
+
+npm start
+
+---
+
