@@ -60,3 +60,5 @@ npm start
 
 ---
 
+📅 Data: 25/11/2025  
+👨‍💻 Autor: **@JoadsonRocha**
