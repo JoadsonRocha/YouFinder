@@ -37,16 +37,17 @@ Verifique se estão instalados:
 node -v
 npm -v
 
-```bash
-
 git clone https://github.com/JoadsonRocha/YouFinder.git
 cd YouFinder
+```bash
 
 npm install
 
 npm install electron --save-dev
 
 npm start
+
+---
 
 ---
 
