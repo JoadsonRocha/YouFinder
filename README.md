@@ -33,6 +33,8 @@ O foco é oferecer uma experiência simples e elegante para assistir vídeos sem
 | ![Tela configurações](./tela%20configurações.png) | ![Tela Modo Claro](./Tela%20Modo%20Claro.png) | ![Tela Modo Escuro](./Tela%20modo%20Escuro.png) |
 
 ---
+### 📥 Download do Instalador
+➡ [Baixar YouFinder v1.0.0](https://github.com/JoadsonRocha/YouFinder/releases/download/v1.0.0/YouFinder-Setup.exe)
 
 
 ## 📦 Instalação e execução
