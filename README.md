@@ -26,6 +26,15 @@ O foco é oferecer uma experiência simples e elegante para assistir vídeos sem
 
 ---
 
+### 📸 Screenshots
+
+| ⚙️ Tela de Configurações                          | 🌞 Modo Claro                                 | 🌚 Modo Escuro                                  |
+| ------------------------------------------------- | --------------------------------------------- | ----------------------------------------------- |
+| ![Tela configurações](./tela%20configurações.png) | ![Tela Modo Claro](./Tela%20Modo%20Claro.png) | ![Tela Modo Escuro](./Tela%20modo%20Escuro.png) |
+
+---
+
+
 ## 📦 Instalação e execução
 
 ### 1. Pré-requisitos
@@ -51,4 +60,3 @@ npm start
 
 ---
 
-```bash
