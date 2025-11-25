@@ -1,39 +1,25 @@
-const { app, BrowserWindow, ipcMain, Menu } = require("electron");
+const { app, BrowserWindow, ipcMain, Menu, screen } = require("electron");
 const path = require("path");
 
-/* ===========================================
-   🔧 OTIMIZAÇÕES DO ELECTRON
-=========================================== */
-
-// Remove quase todos os logs internos
+/* =======================
+   OTIMIZAÇÕES
+======================= */
 app.commandLine.appendSwitch("disable-logging");
-
-// Evita travamentos do watchdog da GPU
 app.commandLine.appendSwitch("disable-gpu-watchdog");
-
-// Ignora blacklist da GPU (melhora vídeo)
 app.commandLine.appendSwitch("ignore-gpu-blacklist");
-
-// Mantém aceleração eficiente
 app.commandLine.appendSwitch("enable-zero-copy");
 app.commandLine.appendSwitch("enable-gpu-rasterization");
-
-// Evita erros de política de autoplay
 app.commandLine.appendSwitch("autoplay-policy", "no-user-gesture-required");
-
-// Evita erros de compositor HTML
 app.commandLine.appendSwitch("disable-renderer-backgrounding");
 
-
-/* ===========================================
-   🔧 FUNÇÃO DA JANELA PRINCIPAL
-=========================================== */
-
+/* =======================
+   JANELA PRINCIPAL
+======================= */
 function createWindow() {
   const win = new BrowserWindow({
     width: 1200,
     height: 800,
-    icon: path.join(__dirname, "YouFinder.ico"),  // ✅ ICONE AQUI
+    icon: path.join(__dirname, "YouFinder.ico"),
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
@@ -42,96 +28,127 @@ function createWindow() {
     }
   });
 
-  // Remove menu superior
   Menu.setApplicationMenu(null);
-
   win.loadFile("index.html");
 }
 
+/* =======================
+   MODO CINEMA: PLAYER CENTRALIZADO EM 97%
+======================= */
+function applyCinemaMode(win) {
+  const CINEMA_CSS = `
+    /* ========== OCULTAR TUDO NÃO ESSENCIAL ========== */
+    #masthead-container,
+    #guide, #secondary, #related, #comments,
+    ytd-reel-shelf-renderer, ytd-merch-shelf-renderer,
+    ytd-banner-promo-renderer, #chat, #footer {
+      display: none !important;
+    }
 
-/* ===========================================
-   🔧 ABRIR VÍDEO SEM DISTRAÇÕES (PLAYER 95%)
-=========================================== */
+    /* ========== FUNDO PRETO ========== */
+    html, body {
+      background: #000 !important;
+      overflow: hidden !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
 
-ipcMain.handle("abrir-video-clean", (event, videoId) => {
-  const videoWindow = new BrowserWindow({
-    width: 1100,
-    height: 680,
-    backgroundColor: "#000",
-    autoHideMenuBar: true,
+    /* ========== PLAYER EM 97% DA TELA ========== */
+    ytd-watch-flexy #primary {
+      width: 97vw !important;
+      min-width: 97vw !important;
+      margin-left: 1.5vw !important;
+      margin-right: 1.5vw !important;
+    }
 
-    webPreferences: {
-      contextIsolation: true,
-      sandbox: false
+    ytd-watch-flexy #player {
+      width: 100% !important;
+      height: 97vh !important;
+      min-height: 97vh !important;
+    }
+  `;
+  win.webContents.insertCSS(CINEMA_CSS);
+}
+
+/* =======================
+   ABRIR VÍDEO CLEAN
+======================= */
+ipcMain.handle("abrir-video-clean", (event, videoId, settings) => {
+  const displays = screen.getAllDisplays();
+  const target = displays.length > 1 ? displays[1] : displays[0];
+  const modoProjetor = settings?.abrirNoProjetor || false;
+  const adblockAtivo = settings?.adblockForte !== false;
+
+  let win;
+  if (modoProjetor) {
+    win = new BrowserWindow({
+      x: target.bounds.x,
+      y: target.bounds.y,
+      width: target.bounds.width,
+      height: target.bounds.height,
+      backgroundColor: "#000",
+      autoHideMenuBar: true,
+      webPreferences: {
+        contextIsolation: true,
+        sandbox: false
+      }
+    });
+    win.maximize();
+  } else {
+    const w = target.workAreaSize.width;
+    const h = target.workAreaSize.height;
+    win = new BrowserWindow({
+      width: 1100,
+      height: 680,
+      x: (w - 1100) / 2,
+      y: (h - 680) / 2,
+      backgroundColor: "#000",
+      autoHideMenuBar: true,
+      webPreferences: {
+        contextIsolation: true,
+        sandbox: false
+      }
+    });
+  }
+
+  win.webContents.setUserAgent(
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+  );
+
+  win.loadURL(`https://www.youtube.com/watch?v=${videoId}`);
+
+  win.webContents.on("did-finish-load", () => {
+    applyCinemaMode(win); // ✅ Aplica o modo cinema com 97%
+
+    if (adblockAtivo) {
+      const adblock = `
+        #player-ads,
+        ytd-video-masthead-ad-v3-renderer,
+        .ytp-ad-player-overlay {
+          display: none !important;
+        }
+      `;
+      win.webContents.insertCSS(adblock);
+
+      win.webContents.executeJavaScript(`
+        setInterval(() => {
+          document.querySelector('.ytp-ad-skip-button')?.click();
+        }, 1000);
+      `);
     }
   });
 
-  // User-Agent de Chrome para evitar bloqueios
-  videoWindow.webContents.setUserAgent(
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
-    "AppleWebKit/537.36 (KHTML, like Gecko) " +
-    "Chrome/120.0.0.0 Safari/537.36"
-  );
-
-  const url = `https://www.youtube.com/watch?v=${videoId}`;
-  videoWindow.loadURL(url);
-
-  // Ao carregar, injeta modo sem distrações + player 95%
-  videoWindow.webContents.on("did-finish-load", async () => {
-
-    const CLEAN_CSS = `
-/* Remove elementos de distração */
-#masthead-container, #guide, #secondary, #related, #comments,
-ytd-mini-guide-renderer, ytd-merch-shelf-renderer,
-ytd-reel-shelf-renderer, ytd-banner-promo-renderer,
-ytd-rich-metadata-renderer, #footer, #chat {
-  display: none !important;
-}
-
-/* Fundo preto */
-html, body {
-  background: #000 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  overflow: hidden !important;
-}
-
-/* ✅ PLAYER OCUPANDO 95% DA JANELA */
-#player, .html5-video-player, ytd-player, video {
-  position: fixed !important;
-  top: 2.5% !important;
-  left: 2.5% !important;
-  width: 95% !important;
-  height: 95% !important;
-  background: #000 !important;
-  border-radius: 12px !important; /* deixa mais bonito */
-  margin: 0 !important;
-  padding: 0 !important;
-}
-
-/* Remove elementos do player */
-.ytp-ce-element,
-.ytp-endscreen-content,
-.ytp-pause-overlay {
-  display: none !important;
-}
-
-/* Remove gradientes */
-.ytp-gradient-bottom,
-.ytp-gradient-top {
-  display: none !important;
-}
-`.trim();
-
-    await videoWindow.webContents.insertCSS(CLEAN_CSS);
+  win.on("closed", () => {
+    if (BrowserWindow.getAllWindows().length === 1) {
+      const mainWindow = BrowserWindow.getAllWindows()[0];
+      if (mainWindow && !mainWindow.isDestroyed()) mainWindow.focus();
+    }
   });
 });
 
-
-/* ===========================================
-   🔧 EVENTOS DO APP
-=========================================== */
-
+/* =======================
+   APP READY
+======================= */
 app.whenReady().then(createWindow);
 
 app.on("window-all-closed", () => {
