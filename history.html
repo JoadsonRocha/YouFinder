@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Histórico - YouFinder Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+
+        body.theme-light .history-header {
+            border-bottom-color: rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body class="theme-light"> <!-- Padrao light agora -->
+
+    <div class="history-header">
+        <h2>🕒 Histórico de Visualização</h2>
+    </div>
+
+    <div id="historyContainer" class="history-grid">
+        <!-- Items -->
+    </div>
+
+    <script src="history.js"></script>
+</body>
+
+</html>

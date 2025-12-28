@@ -1,18 +1,23 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
   <meta charset="UTF-8">
   <title>YouFinder</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="theme-dark">
+
+<body class="theme-light">
   <header>
     <h1>YouFinder 🎬</h1>
     <div class="search-bar">
       <input id="query" type="text" placeholder="Pesquisar vídeos...">
       <button onclick="handleSearch()">Buscar 🔍</button>
     </div>
-    <button id="btnConfig" class="btn-config">⚙️</button>
+    <div class="header-buttons">
+      <button id="btnHistory" class="btn-icon" title="Histórico">🕒</button>
+      <button id="btnConfig" class="btn-icon" title="Configurações">⚙️</button>
+    </div>
   </header>
 
   <main>
@@ -20,8 +25,15 @@
   </main>
 
   <footer>
-    <p>Desenvolvido com ❤️ por Joadson Rocha</p>
+    <div class="footer-content">
+      <p>YouFinder Pro &copy; 2025</p>
+      <span class="separator">•</span>
+      <a href="#" onclick="window.config.openExternal('https://joadsonrocha.github.io/')">
+        Desenvolvido por <strong>Joadson Rocha</strong>
+      </a>
+    </div>
   </footer>
+
 
   <div id="modalConfig" class="modal-bg">
     <div class="modal">
@@ -86,4 +98,5 @@
 
   <script src="renderer.js"></script>
 </body>
+
 </html>

@@ -33,86 +33,62 @@ function createWindow() {
 }
 
 /* =======================
-   MODO CINEMA: PLAYER CENTRALIZADO EM 97%
+   PLAYER CLEAN (SEM QUEBRAR VÍDEO)
 ======================= */
-function applyCinemaMode(win) {
-  const CINEMA_CSS = `
-    /* ========== OCULTAR TUDO NÃO ESSENCIAL ========== */
-    #masthead-container,
+function applyCleanCSS(win) {
+  const css = `
+    /* Remove SIDEBAR, RECOMENDAÇÕES, COMENTÁRIOS */
     #guide, #secondary, #related, #comments,
     ytd-reel-shelf-renderer, ytd-merch-shelf-renderer,
     ytd-banner-promo-renderer, #chat, #footer {
       display: none !important;
     }
 
-    /* ========== FUNDO PRETO ========== */
+    /* Fundo preto */
     html, body {
       background: #000 !important;
       overflow: hidden !important;
-      margin: 0 !important;
-      padding: 0 !important;
     }
-
-    /* ========== PLAYER EM 97% DA TELA ========== */
-    ytd-watch-flexy #primary {
-      width: 97vw !important;
-      min-width: 97vw !important;
-      margin-left: 1.5vw !important;
-      margin-right: 1.5vw !important;
-    }
-
-    ytd-watch-flexy #player {
-      width: 100% !important;
-      height: 97vh !important;
-      min-height: 97vh !important;
-    }
-  `;
-  win.webContents.insertCSS(CINEMA_CSS);
+  `.trim();
+  win.webContents.insertCSS(css);
 }
 
 /* =======================
    ABRIR VÍDEO CLEAN
 ======================= */
-let videoWindow = null;
-
 ipcMain.handle("abrir-video-clean", (event, videoId, settings) => {
   const displays = screen.getAllDisplays();
   const target = displays.length > 1 ? displays[1] : displays[0];
   const modoProjetor = settings?.abrirNoProjetor || false;
   const adblockAtivo = settings?.adblockForte !== false;
 
-  if (videoWindow && !videoWindow.isDestroyed()) {
-    videoWindow.loadURL(`https://www.youtube.com/watch?v=${videoId}`);
-    videoWindow.focus();
-    return;
-  }
-
+  let win;
   if (modoProjetor) {
-    videoWindow = new BrowserWindow({
+    // ✅ MODO PROJETOR: janela maximizada (fullscreen estável)
+    win = new BrowserWindow({
       x: target.bounds.x,
       y: target.bounds.y,
       width: target.bounds.width,
       height: target.bounds.height,
       backgroundColor: "#000",
       autoHideMenuBar: true,
-      icon: path.join(__dirname, "YouFinder.ico"), // ✅ Icone adicionado
       webPreferences: {
         contextIsolation: true,
         sandbox: false
       }
     });
-    videoWindow.maximize();
+    win.maximize();
   } else {
+    // ✅ MODO NORMAL: janela centralizada
     const w = target.workAreaSize.width;
     const h = target.workAreaSize.height;
-    videoWindow = new BrowserWindow({
+    win = new BrowserWindow({
       width: 1100,
       height: 680,
       x: (w - 1100) / 2,
       y: (h - 680) / 2,
       backgroundColor: "#000",
       autoHideMenuBar: true,
-      icon: path.join(__dirname, "YouFinder.ico"), // ✅ Icone adicionado
       webPreferences: {
         contextIsolation: true,
         sandbox: false
@@ -120,15 +96,16 @@ ipcMain.handle("abrir-video-clean", (event, videoId, settings) => {
     });
   }
 
-  videoWindow.webContents.setUserAgent(
+  win.webContents.setUserAgent(
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
   );
 
-  videoWindow.loadURL(`https://www.youtube.com/watch?v=${videoId}`);
+  win.loadURL(`https://www.youtube.com/watch?v=${videoId}`);
 
-  videoWindow.webContents.on("did-finish-load", () => {
-    applyCinemaMode(videoWindow); // ✅ Aplica o modo cinema com 97%
+  win.webContents.on("did-finish-load", () => {
+    applyCleanCSS(win);
 
+    // ✅ AdBlock só se estiver ativado
     if (adblockAtivo) {
       const adblock = `
         #player-ads,
@@ -137,9 +114,10 @@ ipcMain.handle("abrir-video-clean", (event, videoId, settings) => {
           display: none !important;
         }
       `;
-      videoWindow.webContents.insertCSS(adblock);
+      win.webContents.insertCSS(adblock);
 
-      videoWindow.webContents.executeJavaScript(`
+      // Auto-skip
+      win.webContents.executeJavaScript(`
         setInterval(() => {
           document.querySelector('.ytp-ad-skip-button')?.click();
         }, 1000);
@@ -147,30 +125,12 @@ ipcMain.handle("abrir-video-clean", (event, videoId, settings) => {
     }
   });
 
-  videoWindow.on("closed", () => {
-    videoWindow = null;
+  win.on("closed", () => {
     if (BrowserWindow.getAllWindows().length === 1) {
       const mainWindow = BrowserWindow.getAllWindows()[0];
       if (mainWindow && !mainWindow.isDestroyed()) mainWindow.focus();
     }
   });
-});
-
-
-ipcMain.handle("open-history", () => {
-  const win = new BrowserWindow({
-    width: 600,
-    height: 700,
-    autoHideMenuBar: true,
-    icon: path.join(__dirname, "YouFinder.ico"),
-    webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
-      contextIsolation: true,
-      sandbox: false
-    }
-  });
-
-  win.loadFile("history.html");
 });
 
 /* =======================
